@@ -12,6 +12,8 @@ import CoreBluetooth
 // This app will act as a peripheral device.
 class ViewController: UIViewController {
 
+	@IBOutlet weak var isAdvertisingLabel: UILabel!
+
 	var cadencePeripheralManager: CBPeripheralManager?
 
 	// MARK: - CURRENT TIME SERVICE
@@ -91,12 +93,20 @@ class ViewController: UIViewController {
 //		cadencePeripheralManager.add(cadenceCaseService) // fires peripheralManager didAdd service
 //		cadencePeripheralManager.add(cadenceBlisterPackDetectionService) // fires peripheralManager didAdd service
 	}
+
+	override func viewWillDisappear(_ animated: Bool) {
+		super.viewWillDisappear(animated)
+		cadencePeripheralManager!.stopAdvertising()
+	}
 }
 
 extension ViewController: CBPeripheralManagerDelegate {
 	func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
 		if peripheral.state != CBManagerState.poweredOn {
-			fatalError("Turn your bluetooth on!")
+//			fatalError("Turn your bluetooth on!")
+			isAdvertisingLabel.text = "Not advertising, please turn on bluetooth."
+			cadencePeripheralManager!.stopAdvertising()
+			return
 		}
 
 		// Cadence Case Service(Characteristics)
@@ -153,6 +163,7 @@ extension ViewController: CBPeripheralManagerDelegate {
 		// Once you begin advertising data, remote centrals can discover and initiate a connection with you.
 		if peripheral.isAdvertising {
 			print("Cadence peripheral is advertising!")
+			isAdvertisingLabel.text = "I AM ADVERTISING!"
 		}
 	}
 
