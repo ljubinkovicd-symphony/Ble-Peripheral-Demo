@@ -47,6 +47,36 @@ struct GattWrapper {
 		self.gattAttributes[service] = service.characteristics
 	}
 
+	func publishServicesCharacteristicsToDatabase(_ peripheralManager: inout CBPeripheralManager) {
+		guard !self.gattAttributes.isEmpty else { fatalError("GATT Attributes are empty! Call init(serviceType: GattService) first!") }
+
+		for (service, _) in gattAttributes {
+			peripheralManager.add(service)
+		}
+
+	}
+
+	func advertiseDataFromPeripheral(_ peripheralManager: inout CBPeripheralManager) {
+		guard !self.gattAttributes.isEmpty else { fatalError("GATT Attributes are empty! Call init(serviceType: GattService) first!") }
+
+		var serviceUUIDs: [CBUUID] = []
+
+		for (service, _) in gattAttributes {
+			serviceUUIDs.append(service.uuid)
+		}
+
+		// CBAdvertisementDataServiceUUIDsKey
+		let advertisementData = [
+			CBAdvertisementDataServiceUUIDsKey: serviceUUIDs
+		]
+
+		peripheralManager.startAdvertising(advertisementData) // fires peripheralManagerDidStartAdvertising
+	}
+
+	func stopAdvertisingDataFromPeripheral(_ peripheralManager: inout CBPeripheralManager) {
+		peripheralManager.stopAdvertising()
+	}
+
 	private func createService(of serviceType: GattService) -> CBMutableService {
 		var isPrimary = false
 		var serviceUUID: CBUUID
@@ -96,9 +126,9 @@ struct GattWrapper {
 		case .currentTimeDisplay:
 			return [
 				CBMutableCharacteristic(type: GattCharacteristicId.currentTimeDisplayUUID,
-									   	properties: [.notify, .read],
+										properties: [.notify, .read],
 										value: nil,
-									   	permissions: [.readable])
+										permissions: [.readable])
 			]
 		}
 	}
