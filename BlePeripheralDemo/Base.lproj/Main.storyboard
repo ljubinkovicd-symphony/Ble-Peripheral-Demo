@@ -4,7 +4,6 @@
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -24,10 +23,19 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WUD-pW-ltS">
+                                <rect key="frame" x="149" y="362" width="76" height="30"/>
+                                <state key="normal" title="Open Case"/>
+                                <connections>
+                                    <action selector="openCloseCaseButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wMz-aN-Zcc"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="G7R-xu-Tee" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="7Uo-4f-mG1"/>
+                            <constraint firstItem="WUD-pW-ltS" firstAttribute="top" secondItem="G7R-xu-Tee" secondAttribute="bottom" constant="8" id="Hi8-1y-7Sx"/>
+                            <constraint firstItem="WUD-pW-ltS" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="gOK-EW-SSN"/>
                             <constraint firstItem="G7R-xu-Tee" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="q3w-aw-37C"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>

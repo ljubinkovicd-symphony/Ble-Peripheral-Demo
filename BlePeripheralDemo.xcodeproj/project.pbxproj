@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4901BCFD21188DBE00420D06 /* String+hexadecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4901BCFC21188DBE00420D06 /* String+hexadecimal.swift */; };
+		49A80BBE2119965C005742B9 /* GattWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A80BBD2119965C005742B9 /* GattWrapper.swift */; };
 		49D1596921184F08006B4C75 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D1596821184F08006B4C75 /* AppDelegate.swift */; };
 		49D1596B21184F08006B4C75 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D1596A21184F08006B4C75 /* ViewController.swift */; };
 		49D1596E21184F08006B4C75 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 49D1596C21184F08006B4C75 /* Main.storyboard */; };
@@ -15,6 +17,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4901BCFC21188DBE00420D06 /* String+hexadecimal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+hexadecimal.swift"; sourceTree = "<group>"; };
+		49A80BBD2119965C005742B9 /* GattWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GattWrapper.swift; sourceTree = "<group>"; };
 		49D1596521184F08006B4C75 /* BlePeripheralDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlePeripheralDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49D1596821184F08006B4C75 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		49D1596A21184F08006B4C75 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -60,6 +64,8 @@
 				49D1596F21184F0C006B4C75 /* Assets.xcassets */,
 				49D1597121184F0C006B4C75 /* LaunchScreen.storyboard */,
 				49D1597421184F0C006B4C75 /* Info.plist */,
+				4901BCFC21188DBE00420D06 /* String+hexadecimal.swift */,
+				49A80BBD2119965C005742B9 /* GattWrapper.swift */,
 			);
 			path = BlePeripheralDemo;
 			sourceTree = "<group>";
@@ -136,7 +142,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				49D1596B21184F08006B4C75 /* ViewController.swift in Sources */,
+				4901BCFD21188DBE00420D06 /* String+hexadecimal.swift in Sources */,
 				49D1596921184F08006B4C75 /* AppDelegate.swift in Sources */,
+				49A80BBE2119965C005742B9 /* GattWrapper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,6 +291,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 847623UFJR;
 				INFOPLIST_FILE = BlePeripheralDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -301,6 +310,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 847623UFJR;
 				INFOPLIST_FILE = BlePeripheralDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

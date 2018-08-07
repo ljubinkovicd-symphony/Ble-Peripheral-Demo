@@ -33,6 +33,8 @@ class ViewController: UIViewController {
 	*/
 	let caseEventsUUID = CBUUID(string: "651FD921-CADD-4B3F-816E-BF80285C496E")
 
+	var cadenceCaseEventsCharacteristic: CBMutableCharacteristic!
+
 	// MARK: - CADENCE BLISTER PACK (FOIL) DETECTION SERVICE
 	let cadenceBlisterPackDetectionUUID = CBUUID(string: "A0DD7243-53AE-42F9-BF2B-5981D5C30EA6")
 	// characteristics
@@ -67,36 +69,15 @@ class ViewController: UIViewController {
 		}
 
 		cadencePeripheralManager.delegate = self
-
-//		// Cadence Case Service(Characteristics)
-//		cadenceCaseService = CBMutableService(type: cadenceBetaTestCaseUUID, primary: true)
-//		// If you specify a value for the characteristic, the value is cached and its properties and permissions are set to be readable. Therefore, if you need the value of a characteristic to be writeable, or if you expect the value to change during the lifetime of the published service to which the characteristic belongs, you must specify the value to be nil. Following this approach ensures that the value is treated dynamically and requested by the peripheral manager whenever the peripheral manager receives a read or write request from a connected central.
-//		let cadenceCaseEventsCharacteristic = CBMutableCharacteristic(type: caseEventsUUID,
-//																	  properties: [CBCharacteristicProperties.notify, CBCharacteristicProperties.read],
-//																	  value: nil,
-//																	  permissions: [CBAttributePermissions.readable])
-//		cadenceCaseService.characteristics = [cadenceCaseEventsCharacteristic]
-//
-//		// Cadence Blister Pack Detection Service(Characteristics)
-//		cadenceBlisterPackDetectionService = CBMutableService(type: cadenceBlisterPackDetectionUUID, primary: true) // change to false??
-//		let cadenceBlisterPackEventsCharacteristic = CBMutableCharacteristic(type: blisterPackEventsUUID,
-//																			 properties: [CBCharacteristicProperties.notify, CBCharacteristicProperties.read],
-//																			 value: nil,
-//																			 permissions: [CBAttributePermissions.readable])
-//		let cadenceBlisterPackIsDetectingCharacteristics = CBMutableCharacteristic(type: blisterPackIsDetectingUUID,
-//																				   properties: [CBCharacteristicProperties.notify, CBCharacteristicProperties.write, CBCharacteristicProperties.read],
-//																				   value: nil,
-//																				   permissions: [CBAttributePermissions.readable, CBAttributePermissions.writeable])
-//		cadenceBlisterPackDetectionService.characteristics = [cadenceBlisterPackEventsCharacteristic, cadenceBlisterPackIsDetectingCharacteristics]
-
-//		// Publish services and characteristics to the device's database.
-//		cadencePeripheralManager.add(cadenceCaseService) // fires peripheralManager didAdd service
-//		cadencePeripheralManager.add(cadenceBlisterPackDetectionService) // fires peripheralManager didAdd service
 	}
 
 	override func viewWillDisappear(_ animated: Bool) {
 		super.viewWillDisappear(animated)
 		cadencePeripheralManager!.stopAdvertising()
+	}
+
+	@IBAction func openCloseCaseButtonTapped(_ sender: UIButton) {
+
 	}
 }
 
@@ -112,10 +93,10 @@ extension ViewController: CBPeripheralManagerDelegate {
 		// Cadence Case Service(Characteristics)
 		cadenceCaseService = CBMutableService(type: cadenceBetaTestCaseUUID, primary: true)
 		// If you specify a value for the characteristic, the value is cached and its properties and permissions are set to be readable. Therefore, if you need the value of a characteristic to be writeable, or if you expect the value to change during the lifetime of the published service to which the characteristic belongs, you must specify the value to be nil. Following this approach ensures that the value is treated dynamically and requested by the peripheral manager whenever the peripheral manager receives a read or write request from a connected central.
-		let cadenceCaseEventsCharacteristic = CBMutableCharacteristic(type: caseEventsUUID,
-																	  properties: [CBCharacteristicProperties.notify, CBCharacteristicProperties.read],
-																	  value: nil,
-																	  permissions: [CBAttributePermissions.readable])
+		cadenceCaseEventsCharacteristic = CBMutableCharacteristic(type: caseEventsUUID,
+																  properties: [CBCharacteristicProperties.notify, CBCharacteristicProperties.read],
+																  value: nil,
+																  permissions: [CBAttributePermissions.readable])
 		cadenceCaseService.characteristics = [cadenceCaseEventsCharacteristic]
 
 		// Cadence Blister Pack Detection Service(Characteristics)
@@ -173,6 +154,33 @@ extension ViewController: CBPeripheralManagerDelegate {
 	func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {}
 
 	// Receiving read and write requests
-	func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) {}
+
+	// When a connected central requests to read the value of one of your characteristics, the peripheral manager calls the peripheralManager:didReceiveReadRequest: method of its delegate object. The delegate method delivers the request to you in the form of a CBATTRequest object, which has a number of properties that you can use to fulfill the request.
+	func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) {
+
+		if request.characteristic.uuid.isEqual(cadenceCaseEventsCharacteristic.uuid) { // returns 1 bit in hex format 0x00 and 0x01
+			if let cadenceCaseEventsDataValue = cadenceCaseEventsCharacteristic.value {
+				if request.offset > cadenceCaseEventsDataValue.count {
+					cadencePeripheralManager!.respond(to: request,
+													  withResult: CBATTError.invalidOffset)
+				}
+			}
+			let bytes: [CChar] = [0x01]
+			let nsData = NSData.init(bytes: bytes, length: 1)
+			let dataToSend = Data(referencing: nsData)
+
+			request.value = dataToSend
+
+			// After you set the value, respond to the remote central to indicate that the request was successfully fulfilled.
+			// Do so by calling the respondToRequest:withResult: method of the CBPeripheralManager class, passing back the request (whose value you updated) and the result of the request:
+
+			// Call the respondToRequest:withResult: method exactly once each time the peripheralManager:didReceiveReadRequest: delegate method is called.
+			cadencePeripheralManager!.respond(to: request, withResult: CBATTError.success)
+		}
+
+		// If the characteristics’ UUIDs do not match, or if the read can not be completed for any other reason, you would not attempt to fulfill the request. Instead, you would call the respondToRequest:withResult: method immediately and provide a result that indicated the cause of the failure. For a list of the possible results you may specify, see the CBATTError Constants enumeration in Core Bluetooth Constants Reference.
+		cadencePeripheralManager!.respond(to: request, withResult: CBATTError.attributeNotFound)
+	}
+
 	func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {}
 }
