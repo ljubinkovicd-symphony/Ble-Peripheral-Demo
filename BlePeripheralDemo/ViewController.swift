@@ -54,6 +54,20 @@ class ViewController: UIViewController {
 			self.isAdvertisingLabel.textColor = self.isOpenCase ? UIColor.black : UIColor.white
 			self.dataFromCentralLabel.textColor = self.isOpenCase ? UIColor.black : UIColor.white
 		}
+
+		// Send updated values to subscribed centrals
+		// Get the updated value of the characteristic and send it to the central by calling the updateValue:forCharacteristic:onSubscribedCentrals: method of the CBPeripheralManager class.
+		let updatedValue: [CChar] = isOpenCase ? [0x01] : [0x00]
+
+		let nsData = NSData.init(bytes: updatedValue, length: 1)
+		let dataToSend = Data(referencing: nsData)
+
+		let didSendValue = cadencePeripheralManager?.updateValue(dataToSend,
+																 for: gattWrapper!.getCharacteristic(from: GattServiceId.cadenceCaseUUID,
+																									 with: GattCharacteristicId.cadenceCaseOpenClosedUUID)!,
+																 onSubscribedCentrals: nil) // <CBCentral: 0x1c047a9c0 identifier = 72DE6DBD-6AB2-DDFB-2FC8-B714C2B9C8C1, MTU = 182> from peripheralManager:central:didSubscribeToCharacteristic: method.
+
+		print("didSendValue: \(didSendValue)")
 	}
 
 	@IBAction func clearCentralDataLabelTapped(_ sender: Any) {
@@ -107,8 +121,10 @@ extension ViewController: CBPeripheralManagerDelegate {
 	}
 
 	// Monitoring Subscriptions to Characteristic Values
-	func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
 
+	// When a connected central subscribes to the value of one of your characteristics, the peripheral manager calls the peripheralManager:central:didSubscribeToCharacteristic: method of its delegate object:
+	func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
+		print("Central subscribed to characteristic: \(characteristic)")
 	}
 
 	func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {
