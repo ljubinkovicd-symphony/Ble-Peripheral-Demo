@@ -13,13 +13,20 @@ import CoreBluetooth
 class ViewController: UIViewController {
 
 	@IBOutlet weak var isAdvertisingLabel: UILabel!
+	@IBOutlet weak var dataFromCentralLabel: UILabel!
+
+	var isOpenCase: Bool = false
 
 	var gattWrapper: GattWrapper?
 	var cadencePeripheralManager: CBPeripheralManager?
 
+	var stringFromCentral: [String] = []
+
 	// MARK: - Lifecycle Events
 	override func viewDidLoad() {
 		super.viewDidLoad()
+
+		dataFromCentralLabel.text = ""
 
 		cadencePeripheralManager = CBPeripheralManager(delegate: self, queue: nil, options: nil)
 
@@ -38,7 +45,20 @@ class ViewController: UIViewController {
 	}
 
 	@IBAction func openCloseCaseButtonTapped(_ sender: UIButton) {
+		isOpenCase = !isOpenCase
 
+		sender.setTitle(isOpenCase ? "Close the case" : "Open the case", for: .normal)
+
+		UIView.animate(withDuration: 1.1) {
+			self.view.backgroundColor = self.isOpenCase ? UIColor.white : UIColor.black
+			self.isAdvertisingLabel.textColor = self.isOpenCase ? UIColor.black : UIColor.white
+			self.dataFromCentralLabel.textColor = self.isOpenCase ? UIColor.black : UIColor.white
+		}
+	}
+
+	@IBAction func clearCentralDataLabelTapped(_ sender: Any) {
+		stringFromCentral = []
+		dataFromCentralLabel.text = ""
 	}
 }
 
@@ -50,18 +70,14 @@ extension ViewController: CBPeripheralManagerDelegate {
 			return
 		}
 
-		guard var gattWrapper = gattWrapper else {
-			fatalError("GattWrapper not initialized!")
-		}
-
-		gattWrapper.addService(of: GattService.cadenceCase)
-		gattWrapper.addService(of: GattService.cadenceBlisterPack)
+		gattWrapper?.addService(of: GattService.cadenceCase)
+		gattWrapper?.addService(of: GattService.cadenceBlisterPack)
 
 		// fires peripheralManager didAdd service
-		gattWrapper.publishServicesCharacteristicsToDatabase(&cadencePeripheralManager!)
+		gattWrapper?.publishServicesCharacteristicsToDatabase(&cadencePeripheralManager!)
 
 		// fires peripheralManagerDidStartAdvertising
-		gattWrapper.advertiseDataFromPeripheral(&cadencePeripheralManager!)
+		gattWrapper?.advertiseDataFromPeripheral(&cadencePeripheralManager!)
 	}
 
 	// Optional methods
@@ -73,7 +89,7 @@ extension ViewController: CBPeripheralManagerDelegate {
 		}
 
 		print("PUBLISH CALLED!!!\n")
-		print("Cadence peripheral has the following service: \(service)\n")
+		gattWrapper!.printGattAttributes()
 	}
 
 	// Advertising Peripheral Data - called after the peripheral manager starts advertising.
@@ -91,9 +107,17 @@ extension ViewController: CBPeripheralManagerDelegate {
 	}
 
 	// Monitoring Subscriptions to Characteristic Values
-	func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {}
-	func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {}
-	func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {}
+	func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
+
+	}
+
+	func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {
+
+	}
+
+	func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
+
+	}
 
 	// Receiving read and write requests
 	// When a connected central requests to read the value of one of your characteristics, the peripheral manager calls the peripheralManager:didReceiveReadRequest: method of its delegate object. The delegate method delivers the request to you in the form of a CBATTRequest object, which has a number of properties that you can use to fulfill the request.
@@ -107,7 +131,9 @@ extension ViewController: CBPeripheralManagerDelegate {
 													  withResult: CBATTError.invalidOffset)
 				}
 			}
-			let bytes: [CChar] = [0x01]
+
+			let bytes: [CChar] = isOpenCase ? [0x01] : [0x00]
+
 			let nsData = NSData.init(bytes: bytes, length: 1)
 			let dataToSend = Data(referencing: nsData)
 
@@ -124,5 +150,32 @@ extension ViewController: CBPeripheralManagerDelegate {
 		cadencePeripheralManager!.respond(to: request, withResult: CBATTError.attributeNotFound)
 	}
 
-	func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {}
+	// When a connected central sends a request to write the value of one or more of your characteristics, the peripheral manager calls the peripheralManager:didReceiveWriteRequests: method of its delegate object.
+	func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
+		// This time, the delegate method delivers the requests to you in the form of an array containing one or more CBATTRequest objects, each representing a write request. After you have ensured that a write request can be fulfilled, you can write the characteristic’s value:
+
+		// cadenceBlisterPackPlacedRemovedUUID is readable and writeable.
+		let myCharacteristic = gattWrapper?.getCharacteristic(from: GattServiceId.cadenceBlisterPackUUID,
+															  with: GattCharacteristicId.cadenceBlisterPackPlacedRemovedUUID)
+
+		for request in requests {
+			if request.characteristic.uuid.isEqual(GattCharacteristicId.cadenceBlisterPackPlacedRemovedUUID) {
+				if let cadenceBlisterPackEventDataValue = gattWrapper?.getCharacteristic(from: GattServiceId.cadenceBlisterPackUUID,
+																						 with: GattCharacteristicId.cadenceBlisterPackPlacedRemovedUUID) {
+					myCharacteristic!.value = request.value
+
+					let theStringFromCentral = String.init(data: myCharacteristic!.value!,
+														   encoding: .utf16)
+					print("This is what the central has wrote to me: \(theStringFromCentral)")
+					stringFromCentral.append(theStringFromCentral!)
+					dataFromCentralLabel.text = stringFromCentral.reversed().reduce("", { (res, leStr) in
+						return leStr + res!
+					})
+					cadencePeripheralManager!.respond(to: request, withResult: CBATTError.success)
+				}
+			}
+			// Treat multiple requests as you would a single request—if any individual request cannot be fulfilled, you should not fulfill any of them. Instead, call the respondToRequest:withResult: method immediately and provide a result that indicates the cause of the failure.
+			cadencePeripheralManager!.respond(to: request, withResult: CBATTError.invalidAttributeValueLength)
+		}
+	}
 }

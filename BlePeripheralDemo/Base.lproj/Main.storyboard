@@ -20,32 +20,52 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Not advertising..." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G7R-xu-Tee">
                                 <rect key="frame" x="122" y="333" width="131" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WUD-pW-ltS">
-                                <rect key="frame" x="149" y="362" width="76" height="30"/>
-                                <state key="normal" title="Open Case"/>
+                                <rect key="frame" x="138" y="362" width="100" height="30"/>
+                                <state key="normal" title="Open the case"/>
                                 <connections>
                                     <action selector="openCloseCaseButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wMz-aN-Zcc"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="M4N-tt-Oyd">
+                                <rect key="frame" x="16" y="163" width="343" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aMo-Ai-xoO">
+                                <rect key="frame" x="170" y="549" width="36" height="30"/>
+                                <state key="normal" title="Clear"/>
+                                <connections>
+                                    <action selector="clearCentralDataLabelTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="BcC-m7-EA6"/>
+                                </connections>
+                            </button>
                         </subviews>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="M4N-tt-Oyd" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="4Fl-Di-SKq"/>
+                            <constraint firstItem="aMo-Ai-xoO" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="75O-5q-F3a"/>
                             <constraint firstItem="G7R-xu-Tee" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="7Uo-4f-mG1"/>
                             <constraint firstItem="WUD-pW-ltS" firstAttribute="top" secondItem="G7R-xu-Tee" secondAttribute="bottom" constant="8" id="Hi8-1y-7Sx"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="aMo-Ai-xoO" secondAttribute="bottom" constant="88" id="bsi-xM-GdC"/>
                             <constraint firstItem="WUD-pW-ltS" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="gOK-EW-SSN"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="M4N-tt-Oyd" secondAttribute="trailing" constant="16" id="lnk-ua-lFt"/>
+                            <constraint firstItem="M4N-tt-Oyd" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="143" id="ma3-BQ-NGL"/>
                             <constraint firstItem="G7R-xu-Tee" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="q3w-aw-37C"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
+                        <outlet property="dataFromCentralLabel" destination="M4N-tt-Oyd" id="SCg-hm-oi6"/>
                         <outlet property="isAdvertisingLabel" destination="G7R-xu-Tee" id="4Qx-Da-DLU"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="32.799999999999997" y="33.733133433283363"/>
         </scene>
     </scenes>
 </document>

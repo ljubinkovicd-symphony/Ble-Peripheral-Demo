@@ -53,12 +53,12 @@ struct GattWrapper {
 		}
 	}
 
-	func getCharacteristic(from serviceId: CBUUID, with characteristicId: CBUUID) -> CBCharacteristic? {
+	func getCharacteristic(from serviceId: CBUUID, with characteristicId: CBUUID) -> CBMutableCharacteristic? {
 		for (service, characteristics) in gattAttributes {
 			if service.uuid == serviceId {
 				for characteristic in characteristics {
 					if characteristic.uuid == characteristicId {
-						return characteristic
+						return characteristic as? CBMutableCharacteristic
 					}
 				}
 			}
