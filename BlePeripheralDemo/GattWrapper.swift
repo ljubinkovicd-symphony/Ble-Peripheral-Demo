@@ -40,11 +40,30 @@ enum GattCharacteristic {
 
 struct GattWrapper {
 
-	var gattAttributes: [CBMutableService: [CBCharacteristic]] = [:]
+	private var gattAttributes: [CBMutableService: [CBCharacteristic]] = [:]
 
-	init(serviceType: GattService) {
+	mutating func addService(of serviceType: GattService) {
 		let service = createService(of: serviceType)
 		self.gattAttributes[service] = service.characteristics
+	}
+
+	func printGattAttributes() {
+		for (service, characteristics) in gattAttributes {
+			print("HERE IS THE PRINTOUT:\n\n\nService: \(service.description)\nCharacteristics: \(characteristics.description)\n")
+		}
+	}
+
+	func getCharacteristic(from serviceId: CBUUID, with characteristicId: CBUUID) -> CBCharacteristic? {
+		for (service, characteristics) in gattAttributes {
+			if service.uuid == serviceId {
+				for characteristic in characteristics {
+					if characteristic.uuid == characteristicId {
+						return characteristic
+					}
+				}
+			}
+		}
+		return nil
 	}
 
 	func publishServicesCharacteristicsToDatabase(_ peripheralManager: inout CBPeripheralManager) {
