@@ -9,13 +9,28 @@
 import UIKit
 import CoreBluetooth
 
+extension UIView{
+	func blink() {
+		self.alpha = 0.2
+		UIView.animate(withDuration: 1, delay: 0.0, options: [.curveLinear, .repeat, .autoreverse], animations: {self.alpha = 1.0}, completion: nil)
+	}
+}
+
 // This app will act as a peripheral device.
 class ViewController: UIViewController {
 
-	@IBOutlet weak var isAdvertisingLabel: UILabel!
+	@IBOutlet weak var pairButton: UIButton!
+
+	@IBOutlet weak var takePillButton: UIButton!
+
+	@IBOutlet weak var medicationEventLightView: UIView!
+	@IBOutlet weak var casePairedEventLightView: UIView!
+	@IBOutlet weak var batteryLowEventLightView: UIView!
+
 	@IBOutlet weak var dataFromCentralLabel: UILabel!
 
 	var isOpenCase: Bool = false
+	var isPaired: Bool = false
 
 	var gattWrapper: GattWrapper?
 	var cadencePeripheralManager: CBPeripheralManager?
@@ -25,6 +40,12 @@ class ViewController: UIViewController {
 	// MARK: - Lifecycle Events
 	override func viewDidLoad() {
 		super.viewDidLoad()
+
+		pairButton.alpha = isOpenCase ? 1.0 : 0.0
+		takePillButton.alpha = (isOpenCase && isPaired) ? 1.0 : 0.0
+		medicationEventLightView.alpha = 0.0
+		casePairedEventLightView.alpha = 0.0
+		batteryLowEventLightView.alpha = 0.0
 
 		dataFromCentralLabel.text = ""
 
@@ -49,10 +70,14 @@ class ViewController: UIViewController {
 
 		sender.setTitle(isOpenCase ? "Close the case" : "Open the case", for: .normal)
 
+		//		self.pairButton.isHidden = !self.isOpenCase
+		//		self.takePillButton.isHidden = !self.isOpenCase || !self.isPaired
+
 		UIView.animate(withDuration: 1.1) {
 			self.view.backgroundColor = self.isOpenCase ? UIColor.white : UIColor.black
-			self.isAdvertisingLabel.textColor = self.isOpenCase ? UIColor.black : UIColor.white
 			self.dataFromCentralLabel.textColor = self.isOpenCase ? UIColor.black : UIColor.white
+			self.pairButton.alpha = self.isOpenCase ? 1.0 : 0.0
+			self.takePillButton.alpha = (self.isOpenCase && self.isPaired) ? 1.0 : 0.0
 		}
 
 		// Send updated values to subscribed centrals
@@ -66,8 +91,43 @@ class ViewController: UIViewController {
 																 for: gattWrapper!.getCharacteristic(from: GattServiceId.cadenceCaseUUID,
 																									 with: GattCharacteristicId.cadenceCaseOpenClosedUUID)!,
 																 onSubscribedCentrals: nil) // <CBCentral: 0x1c047a9c0 identifier = 72DE6DBD-6AB2-DDFB-2FC8-B714C2B9C8C1, MTU = 182> from peripheralManager:central:didSubscribeToCharacteristic: method.
-
 		print("didSendValue: \(didSendValue)")
+	}
+
+	@IBAction func pairDeviceButtonTapped(_ sender: UIButton) {
+		if (!isPaired) {
+			isPaired = true
+			// fires peripheralManagerDidStartAdvertising
+			gattWrapper?.advertiseDataFromPeripheral(&cadencePeripheralManager!)
+			casePairedEventLightView.isHidden = false
+			casePairedEventLightView.blink()
+		} else {
+			isPaired = false
+			gattWrapper?.stopAdvertisingDataFromPeripheral(&cadencePeripheralManager!)
+			casePairedEventLightView.isHidden = true
+			pairButton.setTitle("Pair", for: .normal)
+		}
+		UIView.animate(withDuration: 1.1) {
+			self.takePillButton.alpha = (self.isOpenCase && self.isPaired) ? 1.0 : 0.0
+		}
+	}
+
+	@IBAction func takePillButtonTapped(_ sender: UIButton) {
+		let dateToSend = Date()
+
+		let dateFormatter = DateFormatter()
+		dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+		let dateString = dateFormatter.string(from: dateToSend)
+
+		if let dataToSend = dateString.data(using: .utf8) {
+			let convertedData = String(data: dataToSend, encoding: .utf8)
+			print("dataToSend: \(convertedData!)")
+			let didSendValue = cadencePeripheralManager?.updateValue(dataToSend,
+																	 for: gattWrapper!.getCharacteristic(from: GattServiceId.cadenceBlisterPackUUID,
+																										 with: GattCharacteristicId.cadenceBlisterPackPlacedRemovedUUID)!,
+																	 onSubscribedCentrals: nil) // <CBCentral: 0x1c047a9c0 identifier = 72DE6DBD-6AB2-DDFB-2FC8-B714C2B9C8C1, MTU = 182> from peripheralManager:central:didSubscribeToCharacteristic: method.
+			print("Should be true: \(didSendValue!)")
+		}
 	}
 
 	@IBAction func clearCentralDataLabelTapped(_ sender: Any) {
@@ -79,7 +139,6 @@ class ViewController: UIViewController {
 extension ViewController: CBPeripheralManagerDelegate {
 	func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
 		if peripheral.state != CBManagerState.poweredOn {
-			isAdvertisingLabel.text = "Not advertising, please turn on bluetooth."
 			cadencePeripheralManager!.stopAdvertising()
 			return
 		}
@@ -90,8 +149,8 @@ extension ViewController: CBPeripheralManagerDelegate {
 		// fires peripheralManager didAdd service
 		gattWrapper?.publishServicesCharacteristicsToDatabase(&cadencePeripheralManager!)
 
-		// fires peripheralManagerDidStartAdvertising
-		gattWrapper?.advertiseDataFromPeripheral(&cadencePeripheralManager!)
+		//		// fires peripheralManagerDidStartAdvertising
+		//		gattWrapper?.advertiseDataFromPeripheral(&cadencePeripheralManager!)
 	}
 
 	// Optional methods
@@ -116,7 +175,7 @@ extension ViewController: CBPeripheralManagerDelegate {
 		// Once you begin advertising data, remote centrals can discover and initiate a connection with you.
 		if peripheral.isAdvertising {
 			print("Cadence peripheral is advertising!")
-			isAdvertisingLabel.text = "I AM ADVERTISING!"
+			pairButton.setTitle("Unpair", for: .normal)
 		}
 	}
 
@@ -187,6 +246,8 @@ extension ViewController: CBPeripheralManagerDelegate {
 					dataFromCentralLabel.text = stringFromCentral.reversed().reduce("", { (res, leStr) in
 						return leStr + res!
 					})
+					medicationEventLightView.isHidden = false
+					medicationEventLightView.blink()
 					cadencePeripheralManager!.respond(to: request, withResult: CBATTError.success)
 				}
 			}
